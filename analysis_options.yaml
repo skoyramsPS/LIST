@@ -1,0 +1,53 @@
+# Static analysis config for TheLIST.
+#
+# This is the FIRST line of the harness. It enforces the strict layering from
+# AGENTS.md §2 via banned imports, and runs under `dart analyze --fatal-infos
+# --fatal-warnings` in `make verify`. Absence-invariants that the analyzer
+# cannot express (e.g. "no DateTime.now() in the engine") are covered by the
+# Dart grep gates in tool/ — see AGENTS.md §3.
+
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  errors:
+    # Layering and absence violations are errors, not warnings — they must fail
+    # the build, never be ignorable.
+    invalid_use_of_internal_member: error
+    # Treat unused code as an error to keep the tree honest.
+    unused_import: error
+    unused_local_variable: error
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/*.drift.dart"
+    - "build/**"
+
+linter:
+  rules:
+    # Calm, predictable code. Add project rules here as layers land.
+    prefer_const_constructors: true
+    prefer_final_locals: true
+    require_trailing_commas: true
+    avoid_print: true
+
+# -----------------------------------------------------------------------------
+# Layering enforcement (banned imports by directory).
+#
+# NOTE: the `import_lint` / directory-scoped banned-import rules below are also
+# mirrored by tool/grep_gates.dart, which is the authoritative, zero-dependency
+# enforcement that runs even if a lint plugin is missing. Keeping both means the
+# layering rule is enforced by static analysis AND by a complete tree scan.
+#
+# Enforced rules (see AGENTS.md §2):
+#   - no `package:drift` under lib/features/ or lib/state/
+#   - no `package:supabase`/`supabase_flutter` outside lib/sync/
+#   - no banned Material visual widgets under lib/features/ (see design_system.md)
+#
+# These are implemented as grep gates in tool/grep_gates.dart so they run with
+# zero plugin dependencies and scan the whole tree. If you later add the
+# `custom_lint` + a directory-import plugin, configure it here to mirror them.
+# -----------------------------------------------------------------------------

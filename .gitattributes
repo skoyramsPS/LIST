@@ -1,0 +1,22 @@
+# Force consistent line endings across Windows and macOS/Linux.
+#
+# Without this, Windows may check files out with CRLF, which makes
+# `dart format --set-exit-if-changed` FAIL on Windows even when the file is
+# correct on Mac — the repo could not be green on both machines at once.
+# Normalising every text file to LF keeps both machines byte-identical.
+
+* text=auto eol=lf
+
+# Explicitly treat code/docs as LF text.
+*.dart   text eol=lf
+*.yaml   text eol=lf
+*.yml    text eol=lf
+*.md     text eol=lf
+*.json   text eol=lf
+Makefile text eol=lf
+
+# Binaries must never be normalised.
+*.ttf    binary
+*.png    binary
+*.jpg    binary
+*.ico    binary
