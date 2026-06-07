@@ -227,3 +227,49 @@ external links and for sync.
 Strict adherence to offline-first, local-first, manual-order, and privacy
 principles. Every feature ships test-first; "done" means `make verify` is green
 (see `/AGENTS.md`).
+
+---
+
+## 22. Implementation prerequisites — must not be missed during task breakdown
+
+These are harness/infrastructure obligations identified before development began.
+They are not features; they are build-correctness prerequisites. When this PRD is
+split into implementation tasks, each item below must appear as an explicit task,
+not be absorbed into a feature ticket where it can be forgotten.
+
+### 22a. Font assets must land before the first UI widget renders
+
+`pubspec.yaml` declares `PlusJakartaSans-Medium.ttf` (weight 500) and
+`PlusJakartaSans-SemiBold.ttf` (weight 600) under `assets/fonts/`. That directory
+currently contains only a `.gitkeep`. Flutter will error at build/test the moment
+any widget renders with the custom font.
+
+**Task:** Add the actual `.ttf` files to `assets/fonts/` **in the same commit as
+the first `ListTextField` or any `List*` component that references the font**. Do
+not defer this past the first UI sprint. Also add a `FontLoader`-based setup in
+`flutter_test` bootstrap so widget tests don't depend on the host filesystem for
+font resolution.
+
+### 22b. Wire `gen_schema.dart` to the real Drift schema in the same commit as the first Drift table
+
+`tool/gen_schema.dart` currently emits a placeholder when `lib/data/` contains any
+`.dart` file (the `_dumpSchema()` TODO). Once the first Drift table lands,
+`make verify` will fail at the `schema-fresh` stage until `_dumpSchema()` is wired
+to the real `AppDatabase` schema.
+
+**Task:** When the agent writes the first Drift database/table file under
+`lib/data/`, it must also update `_dumpSchema()` in `tool/gen_schema.dart` to
+introspect and emit the real DDL, then run `dart run tool/gen_schema.dart` to
+regenerate the fence, and commit everything together. `make verify` must be green
+before the commit lands.
+
+### 22c. Activate `riverpod_lint` in `analysis_options.yaml` before the state layer lands
+
+`pubspec.yaml` declares `custom_lint` and `riverpod_lint` as dev dependencies but
+`analysis_options.yaml` has no `custom_lint:` section activating them. Riverpod
+`@riverpod` annotation misuses will compile silently and only blow up at code-gen
+time.
+
+**Task:** When the first Riverpod provider is written under `lib/state/`, add the
+`custom_lint:` activation block to `analysis_options.yaml` in the same commit. Do
+not wait until a misuse is discovered.
