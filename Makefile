@@ -5,9 +5,9 @@
 # including Windows (`dart run tool/verify.dart`) and CI.
 #
 # Stages, in order, fail-fast:
-#   format -> analyze -> grep-gates -> schema-fresh -> doc-honesty -> test
+#   format -> analyze -> grep-gates -> skill-links -> schema-fresh -> doc-honesty -> test
 
-.PHONY: verify gen format analyze gates docs test setup
+.PHONY: verify gen format analyze gates links docs test setup
 
 ## verify: run the full gate (the only definition of "done").
 verify:
@@ -32,6 +32,10 @@ analyze:
 ## gates: run the absence-invariant grep gates only.
 gates:
 	dart run tool/grep_gates.dart
+
+## links: check .agents/skills/ matches .claude/skills/ (--fix to resync).
+links:
+	dart run tool/check_skill_links.dart
 
 ## docs: run the doc-honesty check only.
 docs:

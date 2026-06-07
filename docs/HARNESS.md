@@ -15,14 +15,15 @@ on every session.
 
 ## 1. The verify pipeline — the only definition of done
 
-`dart run tool/verify.dart` (or `make verify`) runs six stages in strict
-fail-fast order. A task is **not done** until all six are green.
+`dart run tool/verify.dart` (or `make verify`) runs seven stages in strict
+fail-fast order. A task is **not done** until all seven are green.
 
 | Stage | Command | What it catches |
 |---|---|---|
 | **format** | `dart format --set-exit-if-changed .` | Unformatted code |
 | **analyze** | `dart analyze --fatal-infos --fatal-warnings` | Type errors, unused imports, strict-mode violations |
 | **grep-gates** | `dart run tool/grep_gates.dart` | Absence-invariant violations (see §2) |
+| **skill-links** | `dart run tool/check_skill_links.dart` | `.agents/skills/` out of sync with `.claude/skills/` (see §4b) |
 | **schema-fresh** | `dart run tool/gen_schema.dart --check` | `data_model.md` schema fence out of sync with Drift |
 | **doc-honesty** | `dart run tool/doc_honesty.dart` | Dangling `lib/...` or `.claude/skills/...` paths in docs |
 | **test** | `flutter test` | Failing unit, widget, and convergence tests |
@@ -82,7 +83,32 @@ dart run tool/gen_schema.dart --check
 
 ---
 
-## 4. Doc honesty — live path verification
+## 4b. Skill-sync — copy mirror
+
+`.agents/skills/` must be an exact content copy of `.claude/skills/`. Both
+Claude and Codex read from their respective paths; keeping them in sync ensures
+both agents see the same skills.
+
+**Why copies, not a symlink:** `core.symlinks = false` on Windows means Git
+stores symlinks as plain text files, which breaks VS Code Git operations. Copies
+are the only approach that works reliably across platforms.
+
+**When this gate fires:** a SKILL.md was added or edited under `.claude/skills/`
+but `.agents/skills/` wasn't updated, or vice versa.
+
+**How to fix:**
+```
+dart run tool/check_skill_links.dart --fix
+# or
+make links
+```
+
+`--fix` deletes `.agents/skills/` and rebuilds it from `.claude/skills/`. Always
+use `/add-skill` to add skills — it handles the sync step.
+
+---
+
+## 4c. Doc honesty — live path verification
 
 `tool/doc_honesty.dart` extracts every `lib/...` filesystem path mentioned in
 `docs/architecture/*.md` and every `lib/...` and `.claude/skills/...` path
@@ -241,6 +267,39 @@ against the harness and architecture docs, never writes the deliverable. Ends
 every response with exactly one question or concrete action. Escape hatch:
 `/just-tell-me` for a direct answer, then coaching resumes.
 
+### `.claude/skills/add-skill/`
+
+**When to invoke:** when a new `/skill-name` command is needed in the harness.
+
+**What it does:** interviews the human to pin the skill's single responsibility,
+writes the SKILL.md to the project's quality bar, hardlinks it into
+`.agents/skills/`, registers it in this document and `AGENTS.md §8`, and
+verifies green.
+
+**Workflow summary:** interview → write SKILL.md → `--fix` hardlinks → update
+HARNESS.md §6 → update AGENTS.md §8 → `dart run tool/verify.dart` green.
+
+**Output:** a committed, registered, verified SKILL.md in `.claude/skills/<name>/`.
+
+### `.claude/skills/add-grep-gate/`
+
+**When to invoke:** when a new absence-invariant must be mechanically enforced
+across the codebase — typically after `architect-review` flags a structural risk,
+after a recurring violation is spotted in code review, or when a new
+architectural boundary is introduced.
+
+**What it does:** pins the gate's pattern, scope, and invariant; adds it to
+`tool/grep_gates.dart`; writes its self-test in
+`test/harness/grep_gates_test.dart`; adds a row to this document's §2 table;
+and verifies green.
+
+**Workflow summary:** define gate → scan for existing violations → add to
+grep_gates.dart → write self-test → update HARNESS.md §2 →
+`dart run tool/verify.dart` green.
+
+**Output:** gate entry in `tool/grep_gates.dart`, self-test in
+`test/harness/grep_gates_test.dart`, new row in §2 table.
+
 ---
 
 ## 7. Typical session flows
@@ -320,6 +379,17 @@ It is never implicit — if it is not shown, it does not run.
    (use /just-tell-me to drop into direct mode when stuck)
 ```
 
+### Updating the AI coding harness
+
+```
+/add-skill        ← adding a new skill to the library
+/add-grep-gate    ← adding a new absence-invariant gate
+```
+
+For anything else (renaming/removing a skill, adding a verify stage, editing a
+tool script), follow the maintenance rules in §8 — those changes are
+infrequent enough that a dedicated skill adds no value over a clear checklist.
+
 ---
 
 ## 8. Maintenance rules (keeping this document live)
@@ -328,10 +398,12 @@ When you do any of the following, update this document **in the same commit**:
 
 | Change | What to update here |
 |---|---|
-| Add a new `lib/` module mentioned in an architecture doc | Add the path to §4 or §5 if it's a seam adapter |
-| Add, rename, or remove a skill | Update §6 (including `grill-with-docs` if it changed); update `AGENTS.md §8` |
-| Add a new grep gate to `tool/grep_gates.dart` | Add a row to the §2 table |
+| Add a new `lib/` module mentioned in an architecture doc | Add the path to §4c or §5 if it's a seam adapter |
+| Add a skill | Use `/add-skill` — it handles §6 and verify |
+| Rename or remove a skill | Update §6 section header and prose; verify doc-honesty passes |
+| Add a new grep gate | Use `/add-grep-gate` — it handles §2 and verify |
 | Change the verify pipeline stages | Update the §1 table |
+| Add a new verify tool (`tool/*.dart`) | Add a row to §1; add a `make <target>` entry to the Makefile |
 | Add a new test seam (new injectable boundary) | Add it to §5 |
 | Change the Flutter or Dart SDK version | Update §1 (Windows note) and `docs/SETUP.md` |
 

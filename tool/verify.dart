@@ -10,9 +10,10 @@
 //   1. dart format --set-exit-if-changed .
 //   2. dart analyze --fatal-infos --fatal-warnings
 //   3. grep gates            (tool/grep_gates.dart)
-//   4. schema fence is fresh (tool/gen_schema.dart --check)
-//   5. doc-honesty           (tool/doc_honesty.dart)
-//   6. flutter test
+//   4. skill-links           (tool/check_skill_links.dart)
+//   5. schema fence is fresh (tool/gen_schema.dart --check)
+//   6. doc-honesty           (tool/doc_honesty.dart)
+//   7. flutter test
 //
 // A passing run here is the ONLY definition of "done".
 
@@ -23,6 +24,7 @@ Future<void> main() async {
     _Stage('format', 'dart', ['format', '--set-exit-if-changed', '.']),
     _Stage('analyze', 'dart', ['analyze', '--fatal-infos', '--fatal-warnings']),
     _Stage('grep-gates', 'dart', ['run', 'tool/grep_gates.dart']),
+    _Stage('skill-links', 'dart', ['run', 'tool/check_skill_links.dart']),
     _Stage('schema-fresh', 'dart', ['run', 'tool/gen_schema.dart', '--check']),
     _Stage('doc-honesty', 'dart', ['run', 'tool/doc_honesty.dart']),
     _Stage('test', 'flutter', ['test']),
