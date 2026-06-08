@@ -25,7 +25,8 @@ fail-fast order. A task is **not done** until all seven are green.
 | **grep-gates** | `dart run tool/grep_gates.dart` | Absence-invariant violations (see §2) |
 | **skill-links** | `dart run tool/check_skill_links.dart` | `.agents/skills/` out of sync with `.claude/skills/` (see §4b) |
 | **schema-fresh** | `dart run tool/gen_schema.dart --check` | `data_model.md` schema fence out of sync with Drift |
-| **doc-honesty** | `dart run tool/doc_honesty.dart` | Dangling `lib/...` or `.claude/skills/...` paths in docs |
+| **doc-honesty** | `dart run tool/doc_honesty.dart` | Dangling `lib/...` or `.claude/skills/...` paths in docs (see §4c) |
+| **doc-coverage** | `dart run tool/doc_coverage.dart` | Completed tasks with unchecked doc-update criterion (see §2b) |
 | **test** | `flutter test` | Failing unit, widget, and convergence tests |
 
 **Windows note:** `make` is optional. `dart run tool/verify.dart` is identical
@@ -60,6 +61,50 @@ line. Use this sparingly and only with a genuine, reviewed justification.
 plants deliberate violations in a sandbox and asserts each gate fires correctly.
 A gate that silently never matches would give false confidence — the worst
 failure mode for a guardrail.
+
+---
+
+## 2b. Doc-coverage gate — documentation rot by omission
+
+`tool/doc_coverage.dart` catches the failure mode that `doc_honesty` cannot:
+an agent that completes a task and updates the code but never touches the
+architecture docs at all. `doc_honesty` only fails when a referenced path
+disappears; it passes silently when no reference was ever added.
+
+**The rule:** every task file in `docs/tasks/*.md` with `**Status:** complete`
+must have its `<!-- doc-update -->` acceptance criterion line checked off, or
+carry a `**No-doc-impact:**` escape hatch with a non-empty reason.
+
+**The marker line** (from the task template):
+```
+- [ ] <!-- doc-update --> Architecture doc updated if any new `lib/...` path or symbol was introduced
+```
+When the architecture doc has been updated, change `[ ]` to `[x]`:
+```
+- [x] <!-- doc-update --> Architecture doc updated if any new `lib/...` path or symbol was introduced
+```
+
+**The escape hatch** — add anywhere in the task file's header block (before the
+first `##` section) when the task is genuinely doc-neutral:
+```
+**No-doc-impact:** <reason>
+```
+Legitimate reasons: `test-only change, no new lib/ paths introduced`;
+`tooling-only (tool/*.dart), not reflected in arch docs`;
+`config-only (pubspec/analysis_options), no structural change`.
+
+A bare `**No-doc-impact:**` with no reason text is invalid and fails the gate.
+
+**What the gate does NOT check:** it does not verify the *quality* or
+*completeness* of the documentation update — only that the agent explicitly
+confirmed one happened. English prose remains the agent's responsibility.
+
+**Running standalone:**
+```
+dart run tool/doc_coverage.dart
+# or
+make coverage
+```
 
 ---
 
@@ -406,6 +451,7 @@ When you do any of the following, update this document **in the same commit**:
 | Add a new verify tool (`tool/*.dart`) | Add a row to §1; add a `make <target>` entry to the Makefile |
 | Add a new test seam (new injectable boundary) | Add it to §5 |
 | Change the Flutter or Dart SDK version | Update §1 (Windows note) and `docs/SETUP.md` |
+| Change the task file template | Update `.claude/skills/to-tasks/SKILL.md`, sync with `dart run tool/check_skill_links.dart --fix`, and update §2b if the `<!-- doc-update -->` marker or escape hatch format changes |
 
 The doc-honesty gate enforces path references mechanically. English prose is your
 responsibility — no tool verifies it. Write it for the next agent reading cold,

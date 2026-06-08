@@ -22,7 +22,7 @@ This repo is built to be worked by **coding agents** (Codex, Grok Build, Claude 
 AGENTS.md                     ← the contract every agent reads first (Codex + Grok + Claude)
 CLAUDE.md                     ← a pointer stub → AGENTS.md (so the contract never forks)
 docs/
-  planning/active/PRD.md      ← the product spec: WHAT to build (mortal — archived once built)
+  planning/active/the-list/PRD.md  ← the product spec: WHAT to build (mortal — archived once built)
   architecture/
     index.md                  ← routing map: which doc your task needs
     data_model.md             ← EAV, UUIDs, STRICT tables, SQLite Views  (+ generated schema)

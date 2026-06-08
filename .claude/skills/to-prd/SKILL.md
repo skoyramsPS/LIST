@@ -30,10 +30,11 @@ writing the full PRD.
 
 ### 3. Write the PRD
 
-Use the template below. Save it to `docs/planning/active/<feature-slug>.md`.
+Use the template below. Create a folder `docs/planning/active/<feature-slug>/`
+and save the document as `docs/planning/active/<feature-slug>/PRD.md`.
 
-The existing `docs/planning/active/PRD.md` is the master product spec — do NOT
-overwrite it. Feature PRDs are separate files that sit alongside it.
+The existing `docs/planning/active/the-list/PRD.md` is the master product spec — do NOT
+overwrite it. Feature PRDs live in their own subfolders alongside it.
 
 After saving, confirm the file path resolves (doc-honesty will check it on the
 next `dart run tool/verify.dart`).
@@ -47,7 +48,7 @@ next `dart run tool/verify.dart`).
 
 **Status:** draft
 **Created:** <date>
-**Relates to:** docs/planning/active/PRD.md §<section(s)>
+**Relates to:** docs/planning/active/the-list/PRD.md §<section(s)>
 
 ## Problem statement
 

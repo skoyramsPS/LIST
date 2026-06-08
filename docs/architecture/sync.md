@@ -31,7 +31,7 @@ we chose E2EE.
 - **Single-scalar entities** (cells, sheets, columns, rows): one `updated_at`
   *is* the field-timestamp. Merge = higher timestamp wins. A Cell is a degenerate
   **LWW-Register**.
-- **Multi-field entities** (reminders, habit_logs): carry a `field_timestamps`
+- **Multi-field entities** (reminders): carry a `field_timestamps`
   `{field_name: epoch_ms}` map + client-side `pending_changed_fields` dirty
   tracking. Merge is **per field** by timestamp, so two devices editing different
   fields of the same record never clobber each other.
@@ -191,7 +191,7 @@ Enforcement rules for the implementer (each is a test):
    in the user's *current* timezone; build each occurrence by adding the frequency
    to the civil date, re-appending the exact civil time, then converting to a UTC
    instant for scheduling. 9:00 AM always means 9:00 AM local, across DST and
-   travel. (Same two-clock discipline as habit `local_date`.)
+   travel.
 4. **Lazy generator.** A Dart `sync*` generator yields occurrences on demand,
    multiplies by `alert_offsets`, merges across all active reminders, sorts by
    nearest-in-time, and stops the instant the global ≈60 budget (or the safety

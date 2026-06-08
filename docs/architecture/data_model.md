@@ -28,12 +28,10 @@ merge function to write. This single fact is what makes the sync engine simple
 **conflict resolution**, and the unit of **encryption** — one boundary, three
 jobs.
 
-Two concerns are *not* scalar and so are pulled into their own first-class
-tables rather than crammed into cells:
+One concern is *not* scalar and so is pulled into its own first-class table
+rather than crammed into cells:
 
 - **Reminders** — recurrence + multiple alerts + status (multi-field).
-- **Habit logs** — per-day state + count + note (multi-field), plus
-  **habit rule segments** for effective-dated tracking-rule changes.
 
 ## 2. Why UUIDv4 primary keys (not autoincrement)
 
@@ -123,7 +121,7 @@ devices generating an identical key for the same gap effectively impossible.
 ## 6. The Today-tab attention pipeline (SQLite Views, derived at read time)
 
 The Today tab surfaces everything "needing attention" across *all* sheets:
-due/upcoming reminders, habit check-ins due today, and subscriptions in **Trial
+due/upcoming reminders, overdue waiting-on items, and subscriptions in **Trial
 Limbo**. None of this is stored as state — storing it would mean fake reminders
 and staleness bugs. Instead it is **derived at read time**, and the heavy lifting
 stays inside SQLite (never hydrate thousands of EAV cells into Dart to filter
@@ -138,24 +136,27 @@ Three native sources feed one `List<AttentionItem>` behind one Riverpod provider
 
 1. **Reminders** — first-class table:
    `SELECT * FROM reminders WHERE target_date <= :now AND is_enabled = 1`.
-2. **Habits** — first-class `habit_logs` + `habit_rule_segments`: query today's
-   log; if absent, derive due/missed from the rule segment in force on that date.
+2. **Waiting-On** — an **EAV-pivot View** (`v_waiting_on`) that pivots waiting-on
+   cells back into relational columns, then:
+   `WHERE status = 'waiting' AND due_date < :now`.
 3. **Trial Limbo** — an **EAV-pivot View** (`v_subscriptions`) that pivots
    subscription cells back into relational columns, then:
    `WHERE status = 'trial' AND end_date < :now`.
 
-The pivot keys off a stable **`semantic_role`** on each column (e.g.
-`sub_status`, `sub_end_date`, `sub_cost`), assigned at template instantiation —
-**not** the user-facing column name, which is cosmetic and renameable. The role
+Both pivots key off a stable **`semantic_role`** on each column (e.g.
+`sub_status`, `sub_end_date`, `sub_cost` for subscriptions; `wait_status`,
+`wait_due_date`, `wait_from` for waiting-on), assigned at template instantiation
+— **not** the user-facing column name, which is cosmetic and renameable. The role
 is the contract.
 
-Trial Limbo is therefore just one `kind` of `AttentionItem`, derived by
-predicate, never a stored row. Each item links back to its sheet+row for
-tap-to-navigate-and-pulse.
+Overdue Waiting-On and Trial Limbo are therefore just `kind`s of `AttentionItem`,
+derived by predicate, never stored rows. Each item links back to its sheet+row
+for tap-to-navigate-and-pulse. (Trial Limbo additionally pins itself to Today and
+demands a resolution; overdue Waiting-On is a normal, non-pinning item.)
 
 ## 7. Templates
 
-Built-in templates (Simple List, Grocery, Subscription, Goals, Habit Grid,
+Built-in templates (Simple List, Grocery, Subscription, Goals, Waiting On,
 Custom) are **declarative Dart code**, not database rows — so they are
 automatically protected, version with app releases, and never sync. Instantiating
 one runs a `SheetFactory`.
@@ -166,13 +167,13 @@ single **atomic deep-copy transaction** that carries a `source_column_id →
 new_column_id` map (so copied cells point at the new columns, not the
 template's), assigns **fresh `position` keys**, and brings any copied reminders in
 as `is_enabled = 0` (Draft/Paused). Every instantiated sheet carries a
-`template_kind` (`generic`, `grocery`, `subscription`, `habit`, …) that routes the
+`template_kind` (`generic`, `grocery`, `subscription`, `waiting_on`, …) that routes the
 UI to the correct specialized renderer.
 
 ## 8. The sync contract (every synced table carries it)
 
 Single-scalar entities (cells, sheets, columns, rows) use `updated_at` as their
-field-timestamp. Multi-field entities (reminders, habit_logs) additionally carry
+field-timestamp. The multi-field entity (reminders) additionally carries
 a `field_timestamps` JSON map for per-field LWW. Tombstones are `deleted_at` and
 are retained forever (a hard-deleted tombstone would let a stale device resurrect
 the row). See `sync.md` for the full merge and deletion semantics.
@@ -195,6 +196,6 @@ script. Hand-written rationale belongs *above* this line, never inside.
 
 > Reference blueprint (illustrative — the generated block above is authoritative
 > once the schema exists): tables `sheets`, `columns`, `rows`, `cells`,
-> `reminders`, `habit_logs`, `habit_rule_segments`, each `STRICT`, each carrying
+> `reminders`, each `STRICT`, each carrying
 > the sync contract. `cells` has `UNIQUE(row_id, column_id) WHERE deleted_at IS
 > NULL` and the single-slot `CHECK`. See `decision_log` for rejected alternatives.

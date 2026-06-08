@@ -12,7 +12,8 @@
 //   3. grep gates            (tool/grep_gates.dart)
 //   4. skill-links           (tool/check_skill_links.dart)
 //   5. schema fence is fresh (tool/gen_schema.dart --check)
-//   6. doc-honesty           (tool/doc_honesty.dart)
+//   6a. doc-honesty          (tool/doc_honesty.dart)
+//   6b. doc-coverage         (tool/doc_coverage.dart)
 //   7. flutter test
 //
 // A passing run here is the ONLY definition of "done".
@@ -27,6 +28,7 @@ Future<void> main() async {
     _Stage('skill-links', 'dart', ['run', 'tool/check_skill_links.dart']),
     _Stage('schema-fresh', 'dart', ['run', 'tool/gen_schema.dart', '--check']),
     _Stage('doc-honesty', 'dart', ['run', 'tool/doc_honesty.dart']),
+    _Stage('doc-coverage', 'dart', ['run', 'tool/doc_coverage.dart']),
     _Stage('test', 'flutter', ['test']),
   ];
 

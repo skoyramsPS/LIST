@@ -5,9 +5,9 @@
 # including Windows (`dart run tool/verify.dart`) and CI.
 #
 # Stages, in order, fail-fast:
-#   format -> analyze -> grep-gates -> skill-links -> schema-fresh -> doc-honesty -> test
+#   format -> analyze -> grep-gates -> skill-links -> schema-fresh -> doc-honesty -> doc-coverage -> test
 
-.PHONY: verify gen format analyze gates links docs test setup
+.PHONY: verify gen format analyze gates links docs coverage test setup
 
 ## verify: run the full gate (the only definition of "done").
 verify:
@@ -40,6 +40,10 @@ links:
 ## docs: run the doc-honesty check only.
 docs:
 	dart run tool/doc_honesty.dart
+
+## coverage: run the doc-coverage check only (completed tasks have doc-update confirmed).
+coverage:
+	dart run tool/doc_coverage.dart
 
 ## test: run the test suite only.
 test:

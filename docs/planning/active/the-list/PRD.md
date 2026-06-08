@@ -1,6 +1,6 @@
 # TheLIST — Product Requirements (the "What")
 
-**Status:** active product spec
+**Status:** master product spec (active)
 **Platform:** Flutter mobile (iOS + Android)
 **Mode:** Offline-first, local-first; true E2EE multi-device sync
 **Version:** v1.0 (greenfield)
@@ -21,7 +21,8 @@ TheLIST is a simple, fast, private, offline-first app for creating flexible
 **Sheets** — lightly customizable lists/tables. Users add rows, reorder them by
 hand, edit them quickly, and attach reminders when needed. One generalized
 list-and-reminder system spans a zero-bloat grocery list, a manual
-subscription/free-trial tracker, and a lightweight habit/goal tracker.
+subscription/free-trial tracker, a lightweight goal tracker, and a waiting-on
+tracker for things owed to the user.
 
 **Core sentence:** *Users create offline Sheets, add rows, manually reorder them,
 and attach reminders when needed* — and their data syncs privately across their
@@ -57,7 +58,7 @@ is a first-class deliverable, not a deferred phase. (See `architecture/sync.md`.
 
 **Goals:** multiple Sheets; Sheets from protected built-in templates; manual row
 reorder; reminders on rows; full offline use; track lists, groceries,
-subscriptions, one-time goals, habits; light column customization; custom
+subscriptions, one-time goals, things you're waiting on; light column customization; custom
 templates from existing Sheets; opt-in E2EE multi-device sync with account.
 
 **Non-goals (MVP):** bank linking / auto subscription detection; Sheet sharing
@@ -72,8 +73,8 @@ Three bottom-navigation tabs: **Today**, **Sheets**, **Settings**.
 ## 6. Today tab
 
 A lightweight command center for items needing attention — **not** an analytical
-dashboard. Shows: due reminders; overdue items (e.g. unresolved expired trials);
-habit check-ins scheduled for today; upcoming reminders. Does **not** show charts,
+dashboard. Shows: due reminders; overdue items (e.g. unresolved expired trials,
+waiting-on items past their due date); upcoming reminders. Does **not** show charts,
 analytics, AI recommendations, or full calendar views.
 
 All of this is **derived at read time** across all sheets, never stored as state.
@@ -115,7 +116,7 @@ first device. The full key model, the four sign-in/merge lifecycle phases, and t
 ## 11. Templates
 
 Six templates, frozen for MVP: **Simple List · Grocery · Subscription · Goals ·
-Habit Grid · Custom**. Built-ins are protected (cannot be edited directly, can be
+Waiting On · Custom**. Built-ins are protected (cannot be edited directly, can be
 duplicated). Custom templates are created by saving an existing Sheet — structure
 only, or structure + entries. Templates may define default reminder presets.
 (Representation and instantiation: `architecture/data_model.md` §7.)
@@ -199,14 +200,16 @@ Column. No conversion, tax, or coupons in MVP.
   `architecture/data_model.md` §6.)
 - **Goals:** one-time goal tracker — Current, Target, Progress %, Deadline,
   Reminder. No recurring goals or milestones in MVP.
-- **Habit Grid:** sticky habit-name column; date cells scroll horizontally; opens
-  on the current week. Tap toggles Done/Empty; long-press → Partial, Skipped,
-  Missed, Note. Future cells may only be marked Skipped; past cells editable
-  forever. Tracking-rule changes (e.g. Daily → 3×/week) prompt "apply to past vs
-  forward only". Grace period defaults to 24h; count-based tracking supported (e.g.
-  5/8 cups); auto-missed is derived, manual-missed is stored. (Effective-dated
-  rules and the two-clock civil-date model: `architecture/data_model.md` and
-  `architecture/sync.md`.)
+- **Waiting On:** a manual tracker for things the user is waiting to receive from
+  other people or services (a package, a reply, a deliverable). Columns: **Item**,
+  **From** (who/where), **Due Date**, **Reminder**, **Status**. The user sets only
+  two statuses — **Waiting** and **Received**; **Overdue is derived, never stored**
+  (an item still `Waiting` past its Due Date), surfacing as a normal "needs
+  attention" item on Today (tap-to-navigate-and-pulse), **not** an unignorable
+  pinned state — only Trial Limbo pins. Marking a row **Received** auto-disables
+  its active follow-up reminder in the same write; reverting to Waiting does not
+  re-arm it. (Derived-overdue via EAV-pivot View, never a stored reminder:
+  `architecture/data_model.md` §6.)
 
 ## 19. Import & copy
 
@@ -226,7 +229,9 @@ external links and for sync.
 
 Strict adherence to offline-first, local-first, manual-order, and privacy
 principles. Every feature ships test-first; "done" means `make verify` is green
-(see `/AGENTS.md`).
+(see `/AGENTS.md`). Sync acceptance is the two-client convergence matrix
+(`sync.md §7`) — identical final state under any interleaving of edits — not
+merely a green local build.
 
 ---
 

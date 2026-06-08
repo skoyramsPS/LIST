@@ -21,6 +21,7 @@ You may **never** report a task, feature, or bug fix as complete unless
 3. **grep gates** (absence-invariants — see §3)
 4. **schema fence** (`data_model.md` DDL block must match the live Drift schema)
 5. **doc-honesty checks** (`lib/...` paths in `/docs/architecture/*` and `lib/...` + `skills/...` paths in `docs/HARNESS.md` must resolve — see §5)
+5b-gate. **doc-coverage checks** (every completed task in `docs/tasks/` must have its `<!-- doc-update -->` criterion checked, or carry a `**No-doc-impact:**` field — see HARNESS.md §2b)
 6. `flutter test` (unit + widget + the two-client convergence matrix)
 
 ---
@@ -92,6 +93,13 @@ column, component, or sync rule), you **must** update the relevant
 `data_model.md` are generated from the Drift schema into the fenced
 `<!-- DRIFT-SCHEMA -->` region — never hand-edit inside the fence.
 
+`make verify` also runs `tool/doc_coverage.dart` (stage 5b): every task in
+`docs/tasks/` with `**Status:** complete` must have its
+`<!-- doc-update -->` acceptance criterion checked (`- [x]`), or carry a
+`**No-doc-impact:** <reason>` field. A completed task with an unchecked
+doc-update criterion and no escape hatch fails the build. Use the escape hatch
+only for genuinely doc-neutral changes (test-only, tooling-only, config-only).
+
 ---
 
 ## 5b. Documentation & communication conventions
@@ -107,7 +115,7 @@ column, component, or sync rule), you **must** update the relevant
 
 Read `/docs/architecture/index.md` — it maps your task to the one doc you need.
 
-- Product rules / what to build → `/docs/planning/active/PRD.md`
+- Product rules / what to build → `/docs/planning/active/the-list/PRD.md`
 - Database, EAV, schema, Views → `/docs/architecture/data_model.md`
 - Sync, encryption, keys, scheduler → `/docs/architecture/sync.md`
 - UI, components, tokens, theme → `/docs/architecture/design_system.md`

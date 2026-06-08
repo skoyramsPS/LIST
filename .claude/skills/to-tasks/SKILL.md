@@ -21,7 +21,7 @@ rules, grep gates, and doc-honesty requirements.
 ### 2. Check the harness prerequisites (PRD §22)
 
 Before drafting any tasks, check whether this work triggers any of the three
-harness prerequisites captured in the master PRD `docs/planning/active/PRD.md §22`:
+harness prerequisites captured in the master PRD `docs/planning/active/the-list/PRD.md §22`:
 
 - **§22a** Font assets — triggered by the first List* widget or any widget using
   Plus Jakarta Sans. If triggered, the font task must be its own task that
@@ -59,7 +59,7 @@ Present the proposed breakdown as a numbered list. For each task show:
 - **Title**: short imperative name
 - **Type**: HITL / AFK
 - **Blocked by**: which other tasks must complete first (use task numbers)
-- **Harness obligation**: which of the six verify stages this task primarily exercises
+- **Harness obligation**: which of the seven verify stages this task primarily exercises
 - **PRD sections covered**: which user stories or decisions this addresses
 
 Ask:
@@ -88,7 +88,7 @@ Publish in dependency order (blockers first).
 **Type:** HITL / AFK
 **Status:** pending
 **Blocked by:** <task number(s) or "None — can start immediately">
-**Harness stages exercised:** format / analyze / grep-gates / schema-fresh / doc-honesty / test
+**Harness stages exercised:** format / analyze / grep-gates / schema-fresh / doc-honesty / doc-coverage / test
 
 ## What to build
 
@@ -97,11 +97,11 @@ layer-by-layer implementation steps.
 
 ## Acceptance criteria
 
-- [ ] `dart run tool/verify.dart` is green after this task (all six stages)
+- [ ] `dart run tool/verify.dart` is green after this task (all seven stages)
 - [ ] At least one failing test existed before the implementation was written
 - [ ] <specific behaviour criterion 1>
 - [ ] <specific behaviour criterion 2>
-- [ ] Architecture doc updated if any new lib/... path or symbol was introduced
+- [ ] <!-- doc-update --> Architecture doc updated if any new `lib/...` path or symbol was introduced (check this box, or add **No-doc-impact:** below)
 
 ## Grep-gate obligations
 
@@ -116,6 +116,14 @@ List any gate this task must not violate (copy from AGENTS.md §3 as relevant):
 
 Reference PRD §22a / §22b / §22c if this task triggers one of the three
 infrastructure obligations. Describe exactly what must be done in the same commit.
+
+## No-doc-impact (optional escape hatch)
+
+Leave this section out entirely if you checked the <!-- doc-update --> criterion above.
+Only add it when the task genuinely introduced no new `lib/...` paths or symbols
+(e.g. test-only, tooling-only, or config-only changes):
+
+**No-doc-impact:** <reason>
 
 ## Notes
 

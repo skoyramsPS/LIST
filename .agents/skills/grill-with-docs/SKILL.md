@@ -36,7 +36,7 @@ baked into a document.
 This is not a friendly clarification session. It is a structured challenge. The
 agent's job is to find the places where:
 
-- The idea contradicts a locked decision in `_human/decision_log.md`
+- The idea contradicts a locked decision in `AGENTS.md` or the architecture docs
 - The idea is ambiguous against the domain vocabulary in `docs/architecture/`
 - The idea conflicts with the layering rules in `AGENTS.md §2`
 - The idea touches the sync engine or E2EE model in ways that haven't been
@@ -56,10 +56,7 @@ Read these before asking anything:
    idea touches.
 3. The relevant architecture doc(s) — understand the current shape of the system
    in the area being changed.
-4. `docs/planning/active/PRD.md §4` — the explicit non-goals. Know them cold.
-5. `_human/decision_log.md` — the locked decisions with rejected alternatives.
-   These are the most valuable source of challenge questions. If the idea implies
-   a pattern that was explicitly rejected here, surface it immediately.
+4. `docs/planning/active/the-list/PRD.md §4` — the explicit non-goals. Know them cold.
 
 Do not start the interview from general first principles. Start from what this
 project has already decided.
@@ -86,10 +83,10 @@ different term for the same thing, flag it: "The architecture calls this a Cell 
 are you describing a Cell, or something different?"
 
 **Surface contradictions with locked decisions explicitly.** If the idea implies
-something that was rejected in the decision log, name the entry: "Decision log
-#4 rejected SQLCipher for at-rest encryption — your proposal implies local
-encryption. Is this a different threat model, or are you reopening that
-decision?" Only raise it if the friction is real enough to warrant reopening.
+something that conflicts with a decision in `AGENTS.md` or the architecture docs,
+name the entry: "AGENTS.md §3 locks X — your proposal implies Y. Is this a
+different case, or are you reopening that decision?" Only raise it if the
+friction is real enough to warrant reopening.
 
 **Probe the sync and E2EE implications.** Any feature that creates, reads,
 updates, or deletes user data has sync implications. Any data that syncs has
@@ -149,8 +146,8 @@ required.>
 <Which seams are exercised. Whether the convergence matrix needs a new case.>
 
 ### Locked decisions touched
-<Any decision log entries that were relevant. Whether they were confirmed,
-challenged, or consciously deferred.>
+<Any decisions in AGENTS.md or architecture docs that were relevant. Whether they
+were confirmed, challenged, or consciously deferred.>
 
 ### Open questions (if any)
 <Anything that could not be resolved in this session and must be decided during
