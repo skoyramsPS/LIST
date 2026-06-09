@@ -4,12 +4,16 @@
 **Platform:** Flutter mobile (iOS + Android)
 **Mode:** Offline-first, local-first; true E2EE multi-device sync
 **Version:** v1.0 (greenfield)
+**Workspace scope:** cross-cutting — `app/` (Flutter client + sync engine) and
+`backend/` (Supabase dumb-server). The sync thesis is realized across both; the
+app↔backend boundary is in §10a.
 
 > **Scope of this document.** This is the *product* spec — what to build and why,
 > from the user's point of view. It is **mortal**: when the product is built it is
 > archived to `/_human/`. The *how* (database, sync, encryption, UI system) lives
-> in the **immortal** `docs/architecture/*` docs, which are kept honest by
-> `make verify`. Build rules live in `AGENTS.md`. When a product rule below has a
+> in the **immortal** `app/docs/architecture/*` and `backend/docs/architecture/*`
+> docs, which each workspace's `make verify` keeps honest. Build rules live in
+> `AGENTS.md`. When a product rule below has a
 > binding implementation, this doc points to the architecture doc rather than
 > restating it.
 
@@ -35,7 +39,7 @@ offline-capable, end-to-end-encrypted multi-device sync engine**. A local-only
 list app would only prove basic CRUD. The value here is correct distributed
 state: conflict resolution, convergence across offline devices, and a genuine
 E2EE trust model where only the user's devices can read the data. The sync engine
-is a first-class deliverable, not a deferred phase. (See `architecture/sync.md`.)
+is a first-class deliverable, not a deferred phase. (See `app/docs/architecture/sync.md`.)
 
 ## 3. Product principles
 
@@ -48,11 +52,11 @@ is a first-class deliverable, not a deferred phase. (See `architecture/sync.md`.
   scrapes, links banks, or auto-detects subscriptions. It does not assume reality;
   it requires user confirmation.
 - **Manual order matters.** Drag-and-drop order is core. Rows stay exactly where
-  the user puts them. (See ordering in `architecture/data_model.md`.)
+  the user puts them. (See ordering in `app/docs/architecture/data_model.md`.)
 - **Shared modules, not feature islands.** Reminders, notes, links, formulas,
   dates, and bottom-sheet editors are reused across templates.
 - **Private by construction.** When synced, data is end-to-end encrypted; the
-  server cannot read it. (See `architecture/sync.md`.)
+  server cannot read it. (See `app/docs/architecture/sync.md`.)
 
 ## 4. Goals & non-goals
 
@@ -78,7 +82,7 @@ waiting-on items past their due date); upcoming reminders. Does **not** show cha
 analytics, AI recommendations, or full calendar views.
 
 All of this is **derived at read time** across all sheets, never stored as state.
-(Implementation: the attention pipeline in `architecture/data_model.md` §6.)
+(Implementation: the attention pipeline in `app/docs/architecture/data_model.md` §6.)
 
 ## 7. Sheets tab
 
@@ -111,7 +115,30 @@ turns on private, end-to-end-encrypted sync across the user's own devices. The
 user is shown a one-time 24-word recovery phrase ("write it down — it cannot be
 reset"), and can move their key to another device by scanning a QR from their
 first device. The full key model, the four sign-in/merge lifecycle phases, and the
-"two histories merge" behavior are specified in `architecture/sync.md`.
+"two histories merge" behavior are specified in `app/docs/architecture/sync.md`.
+
+### 10a. Cross-workspace sync boundary (app ↔ backend)
+
+Sync is the one feature that spans both workspaces, so the boundary is stated
+here once (the binding detail lives in the architecture docs, not this product
+spec):
+
+- **The app owns all meaning.** The Flutter client encrypts each cell into an
+  opaque `encrypted_payload` blob and writes it together with *plaintext* routing
+  metadata only (`updated_at`, `deleted_at`, `sync_version`, `device_id`). All
+  merge/convergence logic runs on-device. (App side:
+  `app/docs/architecture/sync.md`; payload rule:
+  `app/docs/architecture/data_model.md` §8.)
+- **The backend is a dumb log.** Supabase is an authenticated, RLS-guarded store
+  that accepts and returns those blobs and never reads, merges, or interprets
+  them — it cannot, because the payload is E2EE. (Backend side:
+  `backend/docs/architecture/schema.md` for tables + RLS,
+  `backend/docs/architecture/functions.md` for the push/pull Edge Function
+  contracts.)
+- **The E2EE line:** domain data is server-opaque inside `encrypted_payload`;
+  only routing metadata is plaintext. No user content ever crosses into backend
+  logic. A change to the wire shape touches both sides and both must stay green
+  (`AGENTS.md §4`).
 
 ## 11. Templates
 
@@ -119,7 +146,7 @@ Six templates, frozen for MVP: **Simple List · Grocery · Subscription · Goals
 Waiting On · Custom**. Built-ins are protected (cannot be edited directly, can be
 duplicated). Custom templates are created by saving an existing Sheet — structure
 only, or structure + entries. Templates may define default reminder presets.
-(Representation and instantiation: `architecture/data_model.md` §7.)
+(Representation and instantiation: `app/docs/architecture/data_model.md` §7.)
 
 ## 12. Rows — model, editing, creation, deletion
 
@@ -137,7 +164,7 @@ only, or structure + entries. Templates may define default reminder presets.
   Pasted multi-line text inserts rows below the selected row, in order.
 - **Deletion:** soft-delete snackbar ("Milk deleted · Undo"); final when the
   snackbar expires; no Trash. Sheet deletion requires confirmation. (Sync &
-  tombstone semantics: `architecture/sync.md` §6.)
+  tombstone semantics: `app/docs/architecture/sync.md` §6.)
 - **Duplication:** row-duplicate copies fields and reminder *rules* (not active
   scheduled notifications); sheet-duplicate copies columns, rows, manual order,
   settings; copied active reminders default to **Draft/Paused** and must be
@@ -155,7 +182,7 @@ Dropdown/status. Editing: rename, hide/show, reorder, add, remove, set defaults,
 basic formulas. No conditional logic, validation rules, or advanced functions.
 **A column's type is immutable once any of its cells holds data** — to change
 type, add a new column and migrate by hand. (Rationale:
-`architecture/data_model.md` §3a.)
+`app/docs/architecture/data_model.md` §3a.)
 
 ## 15. Formulas
 
@@ -164,7 +191,7 @@ Simple builder: `Output = Field/Value Operator Field/Value` with `+ - × ÷`
 constants only — **never** other formula columns. Values update live; per-column
 manual override shows an edited indicator and can be recalculated. Sheet-level
 totals (e.g. Grocery "Estimated total") are aggregates, not cell formulas.
-(`architecture/data_model.md` §4.)
+(`app/docs/architecture/data_model.md` §4.)
 
 ## 16. Reminders, notes, links
 
@@ -172,7 +199,7 @@ totals (e.g. Grocery "Estimated total") are aggregates, not cell formulas.
   Yearly with interval (so quarterly = monthly × 3) and multiple alerts (e.g. 7
   days before, 1 day before). Standard OS notifications only — no snooze, action
   buttons, or urgency modes. Tapping opens the Sheet, scrolls to the row, pulses
-  it. (Scheduler & recurrence grammar: `architecture/sync.md` §8.)
+  it. (Scheduler & recurrence grammar: `app/docs/architecture/sync.md` §8.)
 - **Notes:** plain text, cell-level bottom sheet. No formatting/attachments.
 - **Links:** tap → bottom sheet (Open, Edit, Copy). Stored locally, opened in the
   device browser. Basic validation only.
@@ -197,7 +224,7 @@ Column. No conversion, tax, or coupons in MVP.
   Action / Overdue" state, pinned to Today until the user picks *Converted to
   Active* / *Canceled* / *Expired*. Renewal dates never auto-advance — the user
   taps "Mark renewed". (Trial Limbo is derived, never a stored reminder:
-  `architecture/data_model.md` §6.)
+  `app/docs/architecture/data_model.md` §6.)
 - **Goals:** one-time goal tracker — Current, Target, Progress %, Deadline,
   Reminder. No recurring goals or milestones in MVP.
 - **Waiting On:** a manual tracker for things the user is waiting to receive from
@@ -209,7 +236,7 @@ Column. No conversion, tax, or coupons in MVP.
   pinned state — only Trial Limbo pins. Marking a row **Received** auto-disables
   its active follow-up reminder in the same write; reverting to Waiting does not
   re-arm it. (Derived-overdue via EAV-pivot View, never a stored reminder:
-  `architecture/data_model.md` §6.)
+  `app/docs/architecture/data_model.md` §6.)
 
 ## 19. Import & copy
 
@@ -230,7 +257,7 @@ external links and for sync.
 Strict adherence to offline-first, local-first, manual-order, and privacy
 principles. Every feature ships test-first; "done" means `make verify` is green
 (see `AGENTS.md`). Sync acceptance is the two-client convergence matrix
-(`sync.md §7`) — identical final state under any interleaving of edits — not
+(`app/docs/architecture/sync.md §7`) — identical final state under any interleaving of edits — not
 merely a green local build.
 
 ---

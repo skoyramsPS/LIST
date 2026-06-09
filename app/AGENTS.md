@@ -121,7 +121,7 @@ only for genuinely doc-neutral changes (test-only, tooling-only, config-only).
 
 Read `docs/architecture/index.md` — it maps your task to the one doc you need.
 
-- Product rules / what to build → `docs/planning/active/the-list/PRD.md`
+- Product rules / what to build → `docs/planning/active/the-list/PRD.md` (monorepo root)
 - Database, EAV, schema, Views → `docs/architecture/data_model.md`
 - Sync, encryption, keys, scheduler → `docs/architecture/sync.md`
 - UI, components, tokens, theme → `docs/architecture/design_system.md`

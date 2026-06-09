@@ -13,7 +13,7 @@ localized change.
 | Database schema, tables, columns, RLS policies, migrations | [`schema.md`](./schema.md) | `supabase/migrations/` |
 | Edge Function contracts, request/response shapes, auth, payloads | [`functions.md`](./functions.md) | `supabase/functions/` |
 | Testing strategy, fakes, local Supabase, integration harness | [`testing.md`](./testing.md) | `supabase/functions/_harness/` |
-| Product behaviour, feature scope, what an endpoint should do | [`/docs/planning/active/PRD.md`](../planning/active/PRD.md) | — |
+| Product behaviour, feature scope, what an endpoint should do | [`/docs/planning/active/the-list/PRD.md`](../../../docs/planning/active/the-list/PRD.md) | — |
 | Build rules, layering, what `make verify` enforces | [`/AGENTS.md`](../../AGENTS.md) | repo root |
 
 ---

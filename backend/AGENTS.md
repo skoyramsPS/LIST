@@ -143,7 +143,7 @@ doc-update criterion and no escape hatch fails the build.
 
 Read `docs/architecture/index.md` — it maps your task to the one doc you need.
 
-- Product rules / what to build → `docs/planning/active/PRD.md`
+- Product rules / what to build → `docs/planning/active/the-list/PRD.md` (monorepo root)
 - Database schema, migrations, RLS → `docs/architecture/schema.md`
 - Edge Function contracts, auth, payloads → `docs/architecture/functions.md`
 - Testing strategy, fakes, integration harness → `docs/architecture/testing.md`

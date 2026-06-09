@@ -33,7 +33,7 @@ writing the full PRD.
 Use the template below. Create a folder `docs/planning/active/<feature-slug>/`
 and save the document as `docs/planning/active/<feature-slug>/PRD.md`.
 
-The existing `docs/planning/active/the-list/PRD.md` is the master product spec — do NOT
+The existing `docs/planning/active/the-list/PRD.md` (monorepo root) is the master product spec — do NOT
 overwrite it. Feature PRDs live in their own subfolders alongside it.
 
 After saving, confirm the file path resolves (doc-honesty will check it on the

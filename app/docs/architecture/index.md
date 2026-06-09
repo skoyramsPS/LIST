@@ -6,7 +6,7 @@ localized change. The docs here are *immortal*: they describe the living system
 and are kept honest by the doc-path resolution checks in `make verify`.
 
 (The product spec — the "What" — lives separately and is *mortal*:
-`docs/planning/active/the-list/PRD.md`. It is archived to `/_human/` once the product is
+`docs/planning/active/the-list/PRD.md` (monorepo root). It is archived to `/_human/` once the product is
 built.)
 
 ---
@@ -18,7 +18,7 @@ built.)
 | Database schema, tables, cells, columns, rows, EAV, `STRICT`, UUIDs, SQLite Views, the Today-tab attention pivot | [`data_model.md`](./data_model.md) | `lib/data/`, `lib/repositories/` |
 | Sync engine, the dumb server, per-cell LWW merge, conflict resolution, encryption keys (recovery phrase + QR), E2EE payload boundary, the notification scheduler & recurrence | [`sync.md`](./sync.md) | `lib/sync/`, `lib/crypto/`, `lib/notifications/` |
 | Any UI, components, colours, spacing, the `List*` design system, the Pulse interaction, typography, light/dark theme | [`design_system.md`](./design_system.md) | `lib/ui/` (tokens + components), `lib/features/` |
-| Product behaviour, feature scope, what a screen should do | [`docs/planning/active/the-list/PRD.md`](../planning/active/the-list/PRD.md) | — |
+| Product behaviour, feature scope, what a screen should do | [`docs/planning/active/the-list/PRD.md`](../../docs/planning/active/the-list/PRD.md) | — |
 | Build rules, layering, what `make verify` enforces | [`AGENTS.md`](../../AGENTS.md) | `app/` |
 
 ---
