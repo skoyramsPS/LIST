@@ -198,4 +198,4 @@ script. Hand-written rationale belongs *above* this line, never inside.
 > once the schema exists): tables `sheets`, `columns`, `rows`, `cells`,
 > `reminders`, each `STRICT`, each carrying
 > the sync contract. `cells` has `UNIQUE(row_id, column_id) WHERE deleted_at IS
-> NULL` and the single-slot `CHECK`. See `decision_log` for rejected alternatives.
+> NULL` and the single-slot `CHECK`.

@@ -45,8 +45,9 @@ store local DBs in plaintext. **Do not reintroduce SQLCipher** — an agent read
 an old "SQLCipher at rest" note would write broken/contradictory key code.
 
 ## 5. Key model B + C (recovery phrase + device QR); auth decoupled from encryption
-**Decided:** Random 256-bit master key in the Secure Enclave; portable via 24-word
-recovery phrase (B) and device-to-device QR transfer (C). Supabase Auth controls
+**Decided:** 256-bit master key (HKDF-derived from 128-bit CSPRNG entropy) in the
+Secure Enclave; portable via 12-word BIP-39 recovery phrase (B) and
+device-to-device QR transfer carrying the raw entropy (C). Supabase Auth controls
 *access*; the key controls *decryption*; the two are independent.
 **Rejected:** *Option A — derive the key from the login password.* Rejected
 because forgotten password = total unrecoverable data loss, and password change
@@ -113,9 +114,10 @@ and causes a vanish-then-reappear flicker on other devices). *Cross-device undo*
 rows* (phantom keys on the wire).
 
 ## 12. Today tab — SQLite Views, derived at read time (vs maintained cache)
-**Decided:** Three native sources (reminders table; habit_logs+rule_segments; a
-`v_subscriptions` EAV-pivot View on `semantic_role`) feed one AttentionItem
-provider. Store the facts, compute the clock (`:now` bound per read).
+**Decided:** Three native sources (reminders table; a `v_waiting_on` EAV-pivot
+View; a `v_subscriptions` EAV-pivot View — both keyed on `semantic_role`) feed
+one AttentionItem provider. (Habits were removed from project scope; the former
+habit_logs+rule_segments source went with them.) Store the facts, compute the clock (`:now` bound per read).
 **Rejected:** *A hand-maintained local `attention_items` cache table updated on
 write.* Fatal flaw: Trial Limbo and auto-missed are functions of *time*, and no
 write fires when the clock crosses an end-date at midnight while the app is

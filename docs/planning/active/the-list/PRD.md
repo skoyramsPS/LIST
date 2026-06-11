@@ -16,6 +16,13 @@ app↔backend boundary is in §10a.
 > `AGENTS.md`. When a product rule below has a
 > binding implementation, this doc points to the architecture doc rather than
 > restating it.
+>
+> **Companion implementation PRDs** (also mortal) carry the vetted
+> implementation-level requirements per workspace:
+> `app/docs/planning/active/the-list/PRD.md` and
+> `backend/docs/planning/active/the-list/PRD.md`. The sync wire contract is
+> stated verbatim in both; changes to it must update both in the same commit
+> (`AGENTS.md §4`).
 
 ---
 
@@ -68,7 +75,9 @@ templates from existing Sheets; opt-in E2EE multi-device sync with account.
 **Non-goals (MVP):** bank linking / auto subscription detection; Sheet sharing
 *between users*; full calendar/charts/dashboards/analytics; bulk actions;
 advanced spreadsheet formulas; full task-management; AI suggestions; store
-layouts/coupons/recipes; CSV import/export; a Trash bin; cross-device undo.
+layouts/coupons/recipes; CSV import/export; a Trash bin; cross-device undo;
+encryption key rotation; a recovery-phrase verification quiz; OAuth/social
+sign-in (auth is email one-time-code only).
 
 ## 5. App structure
 
@@ -112,9 +121,11 @@ User lands on the Sheets tab with template suggestions; no pre-loaded demo sheet
 
 Sync is **opt-in**. Until the user signs in, the app is purely local. Signing in
 turns on private, end-to-end-encrypted sync across the user's own devices. The
-user is shown a one-time 24-word recovery phrase ("write it down — it cannot be
-reset"), and can move their key to another device by scanning a QR from their
-first device. The full key model, the four sign-in/merge lifecycle phases, and the
+user is shown a one-time 12-word recovery phrase ("write it down — it cannot be
+reset"), re-viewable later in Settings behind a device-unlock prompt, and can
+move their key to another device by scanning a QR from their first device. A
+user who loses both phrase and devices can erase their cloud data and start
+over with a new key — old ciphertext is unrecoverable by design; the app never is. The full key model, the four sign-in/merge lifecycle phases, and the
 "two histories merge" behavior are specified in `app/docs/architecture/sync.md`.
 
 ### 10a. Cross-workspace sync boundary (app ↔ backend)
@@ -125,7 +136,9 @@ spec):
 
 - **The app owns all meaning.** The Flutter client encrypts each cell into an
   opaque `encrypted_payload` blob and writes it together with *plaintext* routing
-  metadata only (`updated_at`, `deleted_at`, `sync_version`, `device_id`). All
+  metadata only — the complete server-readable universe is `user_id`, `id`,
+  `table_name`, `server_seq`, `updated_at`, `deleted_at`, `sync_version`,
+  `device_id`; nothing else. All
   merge/convergence logic runs on-device. (App side:
   `app/docs/architecture/sync.md`; payload rule:
   `app/docs/architecture/data_model.md` §8.)
@@ -305,3 +318,16 @@ time.
 **Task:** When the first Riverpod provider is written under `lib/state/`, add the
 `custom_lint:` activation block to `analysis_options.yaml` in the same commit. Do
 not wait until a misuse is discovered.
+
+### 22d. `sync.md` §3/§4 amendments are the first implementation task
+
+The app companion PRD (`app/docs/planning/active/the-list/PRD.md`,
+§"Architecture doc amendments") supersedes two sections of
+`app/docs/architecture/sync.md` until its amendments land: **§3** (foreign keys
+and `field_timestamps` move *inside* `encrypted_payload`) and **§4** (the
+12-word recovery phrase; the binding entropy → BIP-39 → HKDF derivation chain).
+
+**Task:** landing those `sync.md` amendments is its own explicit task, sequenced
+**before any crypto or sync implementation task**. Until that task completes,
+the companion PRD — not `sync.md` — is authoritative for those two sections. Do
+not implement key handling or the wire payload split from `sync.md` alone.

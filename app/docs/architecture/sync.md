@@ -64,10 +64,13 @@ harmless for a list app and buys enormous simplicity.
 **Supabase Auth controls *access*. The user's key controls *decryption*. The
 server has zero custody of the key.**
 
-- On first sync, the client generates a cryptographically random **256-bit Sync
-  Master Key**, stored in the OS Secure Enclave (iOS Keychain / Android Keystore).
+- On first sync, the client generates the **Sync Master Key** from
+  cryptographically random entropy (the binding derivation chain — 128-bit
+  CSPRNG entropy → 12-word BIP-39 phrase → HKDF → 256-bit key — lives in the
+  app companion PRD until this section is amended, master PRD §22d), stored in
+  the OS Secure Enclave (iOS Keychain / Android Keystore).
 - The key is portable to other devices two ways (model **B + C**):
-  - **B — 24-word recovery phrase.** Shown **once**, with an unmissable warning:
+  - **B — 12-word recovery phrase.** Shown **once**, with an unmissable warning:
     "Write this down. We cannot reset it for you." Survives password reset and
     forgotten passwords.
   - **C — device-to-device QR transfer.** Device 1 displays a QR in Settings;
@@ -90,7 +93,7 @@ recovery-phrase screen, then encrypts existing local rows and pushes them.
 
 **Phase 3 — Immediate sign-in (new device or fresh user).**
 - *Branch A (data found):* app blocks the Sheets tab — "Encrypted data found.
-  Scan QR from your other device or enter your 24-word phrase." On unlock: derive
+  Scan QR from your other device or enter your 12-word phrase." On unlock: derive
   key → save to Enclave → `sync_pull` → decrypt → write plaintext into local
   Drift.
 - *Branch B (no data):* brand-new account. Generate key, save, show recovery
